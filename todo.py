@@ -6,16 +6,23 @@ FILE_NAME = "TODO"
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", help="Command to run", choices=["add", "list", "pop"], default="list", nargs="?")
+    parser.add_argument("command", help="Command to run", choices=["add", "list", "pop", "shift"], default="list", nargs="?")
     parser.add_argument("task", help="Task to add/remove", nargs="?")
     args = parser.parse_args()
+
+    task = args.task
+    if args.task is not None and args.command in ["pop", "shift"]:
+        task = int(task)
+
 
     if args.command == "add":
         add(args.task)
     elif args.command == "list":
         list()
     elif args.command == "pop":
-        pop(int(args.task))
+        pop(task)
+    elif args.command == "shift":
+        shift(task)
     else:
         print("Invalid command")
 
@@ -29,10 +36,19 @@ def list():
             task = line.strip()
             print(f'{idx} {task}')
 
+def shift(task_idx):
+    if task_idx is None:
+        task_idx = 0
+
+    pop(task_idx)
+
 
 def pop(task_idx):
     with open(FILE_NAME, "r") as f:
         lines = f.readlines()
+
+    if task_idx is None:
+        task_idx = len(lines) - 1
     
     if len(lines) <= task_idx or task_idx < 0:
         print("Invalid task index")
