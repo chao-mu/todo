@@ -15,10 +15,12 @@ def main():
     subparsers.add_parser("list", help="List tasks")
 
     pop_parser = subparsers.add_parser("pop", help="Pop tasks")
-    pop_parser.add_argument("tasks", help="Task to pop", type=int, nargs="*")
+    pop_parser.add_argument("tasks", help="Tasks to pop", type=int, nargs="*")
 
     shift_parser = subparsers.add_parser("shift", help="Shift tasks")
-    shift_parser.add_argument("tasks", help="Task to shift", type=int, nargs="*")
+    shift_parser.add_argument("tasks", help="Tasks to shift", type=int, nargs="*")
+
+    subparsers.add_parser("sort", help="Sort tasks")
 
     args = vars(parser.parse_args())
     command = args.pop("command")
@@ -31,8 +33,10 @@ def main():
         cmd_pop(**args)
     elif command == "shift":
         cmd_shift(**args)
+    elif command == "sort":
+        cmd_sort(**args)
     else:
-        print("Invalid command")
+        print("Unsupported command")
 
 def cmd_add(task):
     with open(FILE_NAME, "a") as f:
@@ -49,6 +53,15 @@ def cmd_shift(tasks):
         tasks = [0]
 
     cmd_pop(tasks)
+
+def cmd_sort():
+    with open(FILE_NAME, "r") as f:
+        lines = f.readlines()
+
+    lines.sort()
+
+    with open(FILE_NAME, "w") as f:
+        f.write("".join(lines))
 
 def cmd_pop(tasks):
     with open(FILE_NAME, "r") as f:
