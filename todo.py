@@ -36,8 +36,6 @@ def main():
 
     app = TodoApp(options)
 
-    print(args)
-
     if command == "add":
         app.cmd_add(task=args["task"])
     elif command == "list":
