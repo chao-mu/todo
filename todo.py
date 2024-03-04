@@ -2,16 +2,24 @@
 
 import argparse
 
-FILE_NAME = "TODO"
+from dataclasses import dataclass
+from pathlib import Path
+
+@dataclass
+class Options:
+    path: Path
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--root", "-r", help="Root directory wherein TODO resides", default=".", type=Path)
+    parser.add_argument("--file-name", "-f", help="File name", default="TODO", type=Path)
+
     subparsers = parser.add_subparsers(help="Command to run", dest="command")
     subparsers.default = "list"
 
     add_parser = subparsers.add_parser("add", help="Add a task")
     add_parser.add_argument("task", help="Task to add")
-
+ 
     subparsers.add_parser("list", help="List tasks")
 
     pop_parser = subparsers.add_parser("pop", help="Pop tasks")
@@ -24,65 +32,84 @@ def main():
 
     args = vars(parser.parse_args())
     command = args.pop("command")
+    options = Options(path=Path(args.pop("root"), args.pop("file_name")))
+
+    app = TodoApp(options)
 
     if command == "add":
-        cmd_add(**args)
+        app.cmd_add(**args)
     elif command == "list":
-        cmd_list(**args)
+        app.cmd_list(**args)
     elif command == "pop":
-        cmd_pop(**args)
+        app.cmd_pop(**args)
     elif command == "shift":
-        cmd_shift(**args)
+        app.cmd_shift(**args)
     elif command == "sort":
-        cmd_sort(**args)
+        app.cmd_sort(**args)
     else:
         print("Unsupported command")
 
-def cmd_add(task):
-    with open(FILE_NAME, "a") as f:
-        f.write(task + "\n")
+class TodoApp:
 
-def cmd_list():
-    with open(FILE_NAME, "r") as f:
-        for idx, line in enumerate(f):
-            task = line.strip()
+    def __init__(self, options: Options):
+        self.path = options.path
+
+    def read_tasks(self):
+        tasks = []
+        with open(self.path, "r") as f:
+            for line in f:
+                tasks.append(line.strip())
+
+        return tasks
+
+    def write_tasks(self, tasks):
+        tasks = [task for task in tasks if task]
+        with open(self.path, "w") as f:
+            f.write("\n".join(tasks))
+
+    def append_task(self, task):
+        with open(self.path, "a") as f:
+            f.write(task + "\n")
+
+    def cmd_add(task):
+        self.append_task(task)
+
+    def cmd_list(self):
+        tasks = self.read_tasks()
+        for idx, task in enumerate(tasks):
             print(f'{idx} {task}')
 
-def cmd_shift(tasks):
-    if not tasks:
-        tasks = [0]
+    def cmd_shift(self, tasks):
+        if not tasks:
+            tasks = [0]
 
-    cmd_pop(tasks)
+        self.cmd_pop(self, tasks)
 
-def cmd_sort():
-    with open(FILE_NAME, "r") as f:
-        lines = f.readlines()
+    def cmd_sort(self):
+        tasks = self.read_tasks()
 
-    lines.sort()
+        tasks.sort()
 
-    with open(FILE_NAME, "w") as f:
-        f.write("".join(lines))
+        self.write_tasks(tasks)
 
-def cmd_pop(tasks):
-    with open(FILE_NAME, "r") as f:
-        lines = f.readlines()
+    def cmd_pop(self, tasks):
+        existing_tasks = self.read_tasks()
 
-    if not tasks:
-        tasks = [len(lines) - 1]
-    
-    if any(task_idx >= len(lines) or task_idx < 0 for task_idx in tasks):
-        print("Invalid task index listed")
-        return
+        if not tasks:
+            tasks = [len(lines) - 1]
+        
+        if any(task_idx >= len(lines) or task_idx < 0 for task_idx in tasks):
+            print("Invalid task index listed")
+            return
 
-    kept = []
-    for idx, line in enumerate(lines):
-        if idx not in tasks:
-            kept.append(line)
-        else:
-            print(line.strip())
+        kept = []
+        for idx, line in enumerate(lines):
+            if idx not in tasks:
+                kept.append(line)
+            else:
+                print(line.strip())
 
-    with open(FILE_NAME, "w") as f:
-        f.write("".join(kept))
+        self.write_tasks(tasks)
 
 if __name__ == "__main__":
     main()
