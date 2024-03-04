@@ -36,16 +36,18 @@ def main():
 
     app = TodoApp(options)
 
+    print(args)
+
     if command == "add":
-        app.cmd_add(**args)
+        app.cmd_add(task=args["task"])
     elif command == "list":
-        app.cmd_list(**args)
+        app.cmd_list()
     elif command == "pop":
-        app.cmd_pop(**args)
+        app.cmd_pop(tasks=args["tasks"])
     elif command == "shift":
-        app.cmd_shift(**args)
+        app.cmd_shift(tasks=args["tasks"])
     elif command == "sort":
-        app.cmd_sort(**args)
+        app.cmd_sort()
     else:
         print("Unsupported command")
 
@@ -71,7 +73,7 @@ class TodoApp:
         with open(self.path, "a") as f:
             f.write(task + "\n")
 
-    def cmd_add(task):
+    def cmd_add(self, task):
         self.append_task(task)
 
     def cmd_list(self):
