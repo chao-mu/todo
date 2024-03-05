@@ -37,13 +37,13 @@ def main():
     app = TodoApp(options)
 
     if command == "add":
-        app.cmd_add(task=args["task"])
+        app.cmd_add(new_task=args["task"])
     elif command == "list":
         app.cmd_list()
     elif command == "pop":
-        app.cmd_pop(tasks=args["tasks"])
+        app.cmd_pop(removed_tasks=args["tasks"])
     elif command == "shift":
-        app.cmd_shift(tasks=args["tasks"])
+        app.cmd_shift(removed_tasks=args["tasks"])
     elif command == "sort":
         app.cmd_sort()
     else:
@@ -71,19 +71,19 @@ class TodoApp:
         with open(self.path, "a") as f:
             f.write(task + "\n")
 
-    def cmd_add(self, task):
-        self.append_task(task)
+    def cmd_add(self, new_task):
+        self.append_task(new_task)
 
     def cmd_list(self):
         tasks = self.read_tasks()
         for idx, task in enumerate(tasks):
             print(f'{idx} {task}')
 
-    def cmd_shift(self, tasks):
-        if not tasks:
-            tasks = [0]
+    def cmd_shift(self, removed_tasks):
+        if not removed_tasks:
+            removed_tasks = [0]
 
-        self.cmd_pop(self, tasks)
+        self.cmd_pop(removed_tasks)
 
     def cmd_sort(self):
         tasks = self.read_tasks()
@@ -92,24 +92,26 @@ class TodoApp:
 
         self.write_tasks(tasks)
 
-    def cmd_pop(self, tasks):
-        existing_tasks = self.read_tasks()
+    def cmd_pop(self, removed_tasks):
+        tasks = self.read_tasks()
 
-        if not tasks:
-            tasks = [len(lines) - 1]
+        if not removed_tasks:
+            removed_tasks = [len(tasks) - 1]
         
-        if any(task_idx >= len(lines) or task_idx < 0 for task_idx in tasks):
-            print("Invalid task index listed")
-            return
+        # Check indices
+        for task_idx in removed_tasks:
+            if task_idx >= len(tasks) or task_idx < 0:
+                print(f"Invalid task index listed: {task_idx}")
+                return
 
         kept = []
-        for idx, line in enumerate(lines):
-            if idx not in tasks:
-                kept.append(line)
+        for idx, task in enumerate(tasks):
+            if idx not in removed_tasks:
+                kept.append(task)
             else:
-                print(line.strip())
+                print(task)
 
-        self.write_tasks(tasks)
+        self.write_tasks(kept)
 
 if __name__ == "__main__":
     main()
