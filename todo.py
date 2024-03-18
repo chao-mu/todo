@@ -27,7 +27,6 @@ def main():
     add_parser.add_argument("task", help="Task to add")
 
     list_parser = subparsers.add_parser("list", help="List tasks")
-    list_parser.add_argument("-p", "--prefix", help="prefix")
 
     search_parser = subparsers.add_parser(
         "search", aliases=["s"], help="Search tasks")
@@ -51,7 +50,7 @@ def main():
     if command == "add":
         app.cmd_add(new_task=args["task"])
     elif command == "list":
-        app.cmd_list(prefix=args["prefix"])
+        app.cmd_list()
     elif command == "pop":
         app.cmd_pop(removed_tasks=args["tasks"])
     elif command == "shift":
@@ -89,12 +88,9 @@ class TodoApp:
     def cmd_add(self, new_task):
         self.append_task(new_task)
 
-    def cmd_list(self, prefix):
+    def cmd_list(self):
         tasks = self.read_tasks()
         for idx, task in enumerate(tasks):
-            if not task.startswith(prefix):
-                continue
-
             print(f'{idx} {task}')
 
     def cmd_shift(self, removed_tasks):
