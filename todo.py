@@ -80,6 +80,8 @@ class TodoApp:
         tasks = [task for task in tasks if task]
         with open(self.path, "w") as f:
             f.write("\n".join(tasks))
+            if tasks:
+                f.write("\n")
 
     def append_task(self, task):
         with open(self.path, "a") as f:
