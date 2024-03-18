@@ -5,28 +5,40 @@ import argparse
 from dataclasses import dataclass
 from pathlib import Path
 
+import re
+
+
 @dataclass
 class Options:
     path: Path
 
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--root", "-r", help="Root directory wherein TODO resides", default=".", type=Path)
-    parser.add_argument("--file-name", "-f", help="File name", default="TODO", type=Path)
+    parser.add_argument(
+        "--root", "-r", help="Root directory wherein TODO resides", default=".", type=Path)
+    parser.add_argument("--file-name", "-f",
+                        help="File name", default="TODO", type=Path)
 
     subparsers = parser.add_subparsers(help="Command to run", dest="command")
     subparsers.default = "list"
 
     add_parser = subparsers.add_parser("add", help="Add a task")
     add_parser.add_argument("task", help="Task to add")
- 
-    subparsers.add_parser("list", help="List tasks")
+
+    list_parser = subparsers.add_parser("list", help="List tasks")
+    list_parser.add_argument("-p", "--prefix", help="prefix")
+
+    search_parser = subparsers.add_parser(
+        "search", aliases=["s"], help="Search tasks")
+    search_parser.add_argument("regex", help="regex to match with")
 
     pop_parser = subparsers.add_parser("pop", help="Pop tasks")
     pop_parser.add_argument("tasks", help="Tasks to pop", type=int, nargs="*")
 
     shift_parser = subparsers.add_parser("shift", help="Shift tasks")
-    shift_parser.add_argument("tasks", help="Tasks to shift", type=int, nargs="*")
+    shift_parser.add_argument(
+        "tasks", help="Tasks to shift", type=int, nargs="*")
 
     subparsers.add_parser("sort", help="Sort tasks")
 
@@ -39,15 +51,18 @@ def main():
     if command == "add":
         app.cmd_add(new_task=args["task"])
     elif command == "list":
-        app.cmd_list()
+        app.cmd_list(prefix=args["prefix"])
     elif command == "pop":
         app.cmd_pop(removed_tasks=args["tasks"])
     elif command == "shift":
         app.cmd_shift(removed_tasks=args["tasks"])
     elif command == "sort":
         app.cmd_sort()
+    elif command == "search":
+        app.cmd_search(regex=args["regex"])
     else:
         print("Unsupported command")
+
 
 class TodoApp:
 
@@ -74,9 +89,12 @@ class TodoApp:
     def cmd_add(self, new_task):
         self.append_task(new_task)
 
-    def cmd_list(self):
+    def cmd_list(self, prefix):
         tasks = self.read_tasks()
         for idx, task in enumerate(tasks):
+            if not task.startswith(prefix):
+                continue
+
             print(f'{idx} {task}')
 
     def cmd_shift(self, removed_tasks):
@@ -92,12 +110,21 @@ class TodoApp:
 
         self.write_tasks(tasks)
 
+    def cmd_search(self, regex):
+        tasks = self.read_tasks()
+        pattern = re.compile(regex)
+        for idx, task in enumerate(tasks):
+            if not pattern.match(task):
+                continue
+
+            print(f'{idx} {task}')
+
     def cmd_pop(self, removed_tasks):
         tasks = self.read_tasks()
 
         if not removed_tasks:
             removed_tasks = [len(tasks) - 1]
-        
+
         # Check indices
         for task_idx in removed_tasks:
             if task_idx >= len(tasks) or task_idx < 0:
@@ -112,6 +139,7 @@ class TodoApp:
                 print(task)
 
         self.write_tasks(kept)
+
 
 if __name__ == "__main__":
     main()
