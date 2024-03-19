@@ -112,7 +112,7 @@ class TodoApp:
         tasks = self.read_tasks()
         pattern = re.compile(regex)
         for idx, task in enumerate(tasks):
-            if not pattern.match(task):
+            if not pattern.search(task):
                 continue
 
             print(f'{idx} {task}')
